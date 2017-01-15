@@ -2,6 +2,7 @@ package requests_test
 
 import (
 	"bytes"
+	"errors"
 	"io/ioutil"
 	"net/http"
 	"testing"
@@ -36,6 +37,24 @@ func TestDoBasic(t *testing.T) {
 	result_body, result_code, result_err := requests.Request(client, "UNUSED", "UNUSED", nil)
 
 	if result_body != body || result_code != code || result_err != nil {
+		t.Error("Failed to parse request: ", client)
+	}
+}
+
+func TestDoError(t *testing.T) {
+	body := ""
+	code := 0
+	err := errors.New("")
+
+	client := MockClient{
+		Body: body,
+		Code: code,
+		Err:  err,
+	}
+
+	result_body, result_code, result_err := requests.Request(client, "UNUSED", "UNUSED", nil)
+
+	if result_body != body || result_code != code || result_err != err {
 		t.Error("Failed to parse request: ", client)
 	}
 }
