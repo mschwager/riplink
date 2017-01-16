@@ -9,6 +9,7 @@ import (
 
 	"github.com/mschwager/riplink/src/parse"
 	"github.com/mschwager/riplink/src/requests"
+	"github.com/mschwager/riplink/src/rpurl"
 )
 
 func main() {
@@ -43,14 +44,28 @@ func main() {
 			continue
 		}
 
-		url = href.Val
-		_, statusCode, err := requests.Request(client, "HEAD", url, nil)
+		pageUrl := href.Val
+		hasHost, err := rpurl.HasHost(pageUrl)
 		if err != nil {
 			fmt.Println(err)
 			continue
 		}
 
-		fmt.Println("HREF: " + href.Val)
+		if !hasHost {
+			pageUrl, err = rpurl.AddBaseHost(url, pageUrl)
+			if err != nil {
+				fmt.Println(err)
+				continue
+			}
+		}
+
+		_, statusCode, err := requests.Request(client, "GET", pageUrl, nil)
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+
+		fmt.Println("HREF: " + pageUrl)
 		fmt.Println("STATUS CODE: " + strconv.Itoa(statusCode))
 	}
 }
