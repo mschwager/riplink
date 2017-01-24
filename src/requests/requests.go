@@ -10,6 +10,12 @@ type Client interface {
 	Do(*http.Request) (*http.Response, error)
 }
 
+type Result struct {
+	Url  string
+	Code int
+	Err  error
+}
+
 func Request(client Client, method string, url string, body io.Reader) (responseBody string, responseCode int, err error) {
 	request, err := http.NewRequest(method, url, body)
 	if err != nil {
@@ -28,4 +34,18 @@ func Request(client Client, method string, url string, body io.Reader) (response
 	}
 
 	return string(bytes), response.StatusCode, nil
+}
+
+func RequestToChan(client Client, method string, url string, body io.Reader, ch <-chan *Result) (err error) {
+	_, code, err := Request(client, method, url, body)
+
+	result := &Result{
+		Url:  url,
+		Code: code,
+		Err:  err,
+	}
+
+	ch <- result
+
+	return nil
 }

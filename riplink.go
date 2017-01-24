@@ -19,7 +19,7 @@ func main() {
 	flag.Parse()
 
 	client := &http.Client{
-		Timeout: time.Second * 10,
+		Timeout: time.Second * 5,
 	}
 
 	response, _, err := requests.Request(client, "GET", url, nil)
@@ -36,6 +36,8 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	ch := make(chan *requests.Result)
 
 	for _, anchor := range anchors {
 		href, err := parse.Href(anchor)
@@ -59,13 +61,16 @@ func main() {
 			}
 		}
 
-		_, statusCode, err := requests.Request(client, "GET", pageUrl, nil)
-		if err != nil {
-			fmt.Println(err)
+		go requests.RequestToChan(client, "GET", pageUrl, nil, ch)
+	}
+
+	for response := range ch {
+		if response.Err != nil {
+			fmt.Println(response.Err)
 			continue
 		}
 
-		fmt.Println("HREF: " + pageUrl)
-		fmt.Println("STATUS CODE: " + strconv.Itoa(statusCode))
+		fmt.Println("HREF: " + response.Url)
+		fmt.Println("STATUS CODE: " + strconv.Itoa(response.Code))
 	}
 }
