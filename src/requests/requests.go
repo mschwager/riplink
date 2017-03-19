@@ -16,24 +16,24 @@ type Result struct {
 	Err  error
 }
 
-func Request(client Client, method string, url string, body io.Reader) (responseBody string, responseCode int, err error) {
+func Request(client Client, method string, url string, body io.Reader) (responseBody []byte, responseCode int, err error) {
 	request, err := http.NewRequest(method, url, body)
 	if err != nil {
-		return "", 0, err
+		return []byte{}, 0, err
 	}
 
 	response, err := client.Do(request)
 	if err != nil {
-		return "", 0, err
+		return []byte{}, 0, err
 	}
 	defer response.Body.Close()
 
 	bytes, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		return "", 0, err
+		return []byte{}, 0, err
 	}
 
-	return string(bytes), response.StatusCode, nil
+	return bytes, response.StatusCode, nil
 }
 
 func RequestToChan(client Client, method string, url string, body io.Reader, ch chan *Result) (err error) {

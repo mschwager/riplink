@@ -1,16 +1,16 @@
 package parse
 
 import (
+	"bytes"
 	"errors"
-	"strings"
 
 	"golang.org/x/net/html"
 )
 
-func StringToHtmlNode(s string) (node *html.Node, err error) {
-	node, err = html.Parse(strings.NewReader(s))
+func BytesToHtmlNode(s []byte) (node *html.Node, err error) {
+	node, err = html.Parse(bytes.NewReader(s))
 	if err != nil {
-		return nil, errors.New("Could not parse HTML string.")
+		return nil, errors.New("Could not parse HTML bytes.")
 	}
 
 	return node, nil

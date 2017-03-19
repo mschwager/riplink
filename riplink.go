@@ -10,11 +10,13 @@ import (
 	"github.com/mschwager/riplink/src/parse"
 	"github.com/mschwager/riplink/src/requests"
 	"github.com/mschwager/riplink/src/rpurl"
+
+	"golang.org/x/net/html"
 )
 
 func main() {
-	var url string
-	flag.StringVar(&url, "url", "https://google.com", "URL to query")
+	var queryUrl string
+	flag.StringVar(&queryUrl, "url", "https://google.com", "URL to query")
 
 	flag.Parse()
 
@@ -22,12 +24,12 @@ func main() {
 		Timeout: time.Second * 5,
 	}
 
-	response, _, err := requests.Request(client, "GET", url, nil)
+	response, _, err := requests.Request(client, "GET", queryUrl, nil)
 	if err != nil {
 		panic(err)
 	}
 
-	node, err := parse.StringToHtmlNode(response)
+	node, err := parse.BytesToHtmlNode(response)
 	if err != nil {
 		panic(err)
 	}
@@ -37,40 +39,57 @@ func main() {
 		panic(err)
 	}
 
-	ch := make(chan *requests.Result)
-
+	// Filter invalid HREFs
+	var hrefs []html.Attribute
 	for _, anchor := range anchors {
 		href, err := parse.Href(anchor)
 		if err != nil {
 			fmt.Println(err)
 			continue
 		}
+		hrefs = append(hrefs, href)
+	}
 
-		pageUrl := href.Val
-		hasHost, err := rpurl.HasHost(pageUrl)
+	// Attempt to include hostname in relative paths
+	// E.g. Querying https://example.com yields /relative/path
+	// gives https://example.com/relative/path
+	var urls []string
+	for _, href := range hrefs {
+		url := href.Val
+		hasHost, err := rpurl.HasHost(url)
 		if err != nil {
 			fmt.Println(err)
 			continue
 		}
 
 		if !hasHost {
-			pageUrl, err = rpurl.AddBaseHost(url, pageUrl)
+			url, err = rpurl.AddBaseHost(queryUrl, url)
 			if err != nil {
 				fmt.Println(err)
 				continue
 			}
 		}
-
-		go requests.RequestToChan(client, "GET", pageUrl, nil, ch)
+		urls = append(urls, url)
 	}
 
-	for response := range ch {
-		if response.Err != nil {
-			fmt.Println(response.Err)
+	ch := make(chan *requests.Result)
+
+	requestCount := 0
+
+	for _, url := range urls {
+		requestCount += 1
+		go requests.RequestToChan(client, "GET", url, nil, ch)
+	}
+
+	for i := 0; i < requestCount; i++ {
+		result := <-ch
+
+		if result.Err != nil {
+			fmt.Println(result.Err)
 			continue
 		}
 
-		fmt.Println("HREF: " + response.Url)
-		fmt.Println("STATUS CODE: " + strconv.Itoa(response.Code))
+		fmt.Println("HREF: " + result.Url)
+		fmt.Println("STATUS CODE: " + strconv.Itoa(result.Code))
 	}
 }
