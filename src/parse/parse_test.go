@@ -6,10 +6,10 @@ import (
 	"github.com/mschwager/riplink/src/parse"
 )
 
-func TestStringToHtmlNodeBasic(t *testing.T) {
-	html := ""
+func TestBytesToHtmlNodeBasic(t *testing.T) {
+	html := []byte("")
 
-	_, err := parse.StringToHtmlNode(html)
+	_, err := parse.BytesToHtmlNode(html)
 
 	if err != nil {
 		t.Error("Failed to parse HTML:", err)
@@ -17,16 +17,16 @@ func TestStringToHtmlNodeBasic(t *testing.T) {
 }
 
 func TestElementsBasic(t *testing.T) {
-	html := `
+	html := []byte(`
 	<html>
 	<head>
 	</head>
 	<body>
 	</body>
 	</html>
-	`
+	`)
 
-	node, err1 := parse.StringToHtmlNode(html)
+	node, err1 := parse.BytesToHtmlNode(html)
 	elements, err2 := parse.Elements(node)
 
 	expected_length := 3
@@ -37,16 +37,16 @@ func TestElementsBasic(t *testing.T) {
 }
 
 func TestAnchorsEmpty(t *testing.T) {
-	html := `
+	html := []byte(`
 	<html>
 	<head>
 	</head>
 	<body>
 	</body>
 	</html>
-	`
+	`)
 
-	node, err1 := parse.StringToHtmlNode(html)
+	node, err1 := parse.BytesToHtmlNode(html)
 	anchors, err2 := parse.Anchors(node)
 
 	expected_length := 0
@@ -57,7 +57,7 @@ func TestAnchorsEmpty(t *testing.T) {
 }
 
 func TestAnchorsBasic(t *testing.T) {
-	html := `
+	html := []byte(`
 	<html>
 	<head>
 	</head>
@@ -67,9 +67,9 @@ func TestAnchorsBasic(t *testing.T) {
 		<a href="example.com">Test2</a>
 	</body>
 	</html>
-	`
+	`)
 
-	node, err1 := parse.StringToHtmlNode(html)
+	node, err1 := parse.BytesToHtmlNode(html)
 	anchors, err2 := parse.Anchors(node)
 
 	expected_length := 2
@@ -80,7 +80,7 @@ func TestAnchorsBasic(t *testing.T) {
 }
 
 func TestHrefBasic(t *testing.T) {
-	html := `
+	html := []byte(`
 	<html>
 	<head>
 	</head>
@@ -88,9 +88,9 @@ func TestHrefBasic(t *testing.T) {
 		<a href="example.com">Test1</a>
 	</body>
 	</html>
-	`
+	`)
 
-	node, err1 := parse.StringToHtmlNode(html)
+	node, err1 := parse.BytesToHtmlNode(html)
 	anchors, err2 := parse.Anchors(node)
 	href, err3 := parse.Href(anchors[0])
 
@@ -102,7 +102,7 @@ func TestHrefBasic(t *testing.T) {
 }
 
 func TestHrefNoAnchorHref(t *testing.T) {
-	html := `
+	html := []byte(`
 	<html>
 	<head>
 	</head>
@@ -110,9 +110,9 @@ func TestHrefNoAnchorHref(t *testing.T) {
 		<a>Test1</a>
 	</body>
 	</html>
-	`
+	`)
 
-	node, err1 := parse.StringToHtmlNode(html)
+	node, err1 := parse.BytesToHtmlNode(html)
 	anchors, err2 := parse.Anchors(node)
 	href, err3 := parse.Href(anchors[0])
 

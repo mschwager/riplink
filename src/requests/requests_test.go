@@ -11,7 +11,7 @@ import (
 )
 
 type MockClient struct {
-	Body string
+	Body []byte
 	Code int
 	Err  error
 }
@@ -19,14 +19,14 @@ type MockClient struct {
 func (client MockClient) Do(request *http.Request) (response *http.Response, err error) {
 	response = &http.Response{
 		StatusCode: client.Code,
-		Body:       ioutil.NopCloser(bytes.NewReader([]byte(client.Body))),
+		Body:       ioutil.NopCloser(bytes.NewReader(client.Body)),
 	}
 
 	return response, client.Err
 }
 
 func TestDoBasic(t *testing.T) {
-	body := ""
+	body := []byte{}
 	code := 200
 
 	client := MockClient{
@@ -36,13 +36,13 @@ func TestDoBasic(t *testing.T) {
 
 	result_body, result_code, result_err := requests.Request(client, "UNUSED", "UNUSED", nil)
 
-	if result_body != body || result_code != code || result_err != nil {
+	if len(result_body) != 0 || result_code != code || result_err != nil {
 		t.Error("Failed to parse request: ", client)
 	}
 }
 
 func TestDoError(t *testing.T) {
-	body := ""
+	body := []byte{}
 	code := 0
 	err := errors.New("")
 
@@ -54,7 +54,7 @@ func TestDoError(t *testing.T) {
 
 	result_body, result_code, result_err := requests.Request(client, "UNUSED", "UNUSED", nil)
 
-	if result_body != body || result_code != code || result_err != err {
+	if result_body != nil || result_code != code || result_err != err {
 		t.Error("Failed to parse request: ", client)
 	}
 }
