@@ -36,7 +36,7 @@ func Request(client Client, method string, url string, body io.Reader) (response
 	return string(bytes), response.StatusCode, nil
 }
 
-func RequestToChan(client Client, method string, url string, body io.Reader, ch <-chan *Result) (err error) {
+func RequestToChan(client Client, method string, url string, body io.Reader, ch chan *Result) (err error) {
 	_, code, err := Request(client, method, url, body)
 
 	result := &Result{
