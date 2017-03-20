@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/mschwager/riplink/src/parse"
@@ -17,6 +16,9 @@ import (
 func main() {
 	var queryUrl string
 	flag.StringVar(&queryUrl, "url", "https://google.com", "URL to query")
+
+	var verbose bool
+	flag.BoolVar(&verbose, "verbose", false, "Verbose output")
 
 	flag.Parse()
 
@@ -89,7 +91,8 @@ func main() {
 			continue
 		}
 
-		fmt.Println("HREF: " + result.Url)
-		fmt.Println("STATUS CODE: " + strconv.Itoa(result.Code))
+		if verbose || result.Code < 200 || result.Code > 299 {
+			fmt.Println(result.Url, result.Code)
+		}
 	}
 }
