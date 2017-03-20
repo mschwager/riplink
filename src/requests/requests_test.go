@@ -25,7 +25,7 @@ func (client MockClient) Do(request *http.Request) (response *http.Response, err
 	return response, client.Err
 }
 
-func TestDoBasic(t *testing.T) {
+func TestSendRequestBasic(t *testing.T) {
 	body := []byte{}
 	code := 200
 
@@ -34,14 +34,16 @@ func TestDoBasic(t *testing.T) {
 		Code: code,
 	}
 
-	result_body, result_code, result_err := requests.Request(client, "UNUSED", "UNUSED", nil)
+	request, _ := http.NewRequest("UNUSED", "UNUSED", nil)
+
+	result_body, result_code, result_err := requests.SendRequest(client, request)
 
 	if len(result_body) != 0 || result_code != code || result_err != nil {
 		t.Error("Failed to parse request: ", client)
 	}
 }
 
-func TestDoError(t *testing.T) {
+func TestSendRequestError(t *testing.T) {
 	body := []byte{}
 	code := 0
 	err := errors.New("")
@@ -52,9 +54,67 @@ func TestDoError(t *testing.T) {
 		Err:  err,
 	}
 
-	result_body, result_code, result_err := requests.Request(client, "UNUSED", "UNUSED", nil)
+	request, _ := http.NewRequest("UNUSED", "UNUSED", nil)
+
+	result_body, result_code, result_err := requests.SendRequest(client, request)
 
 	if result_body != nil || result_code != code || result_err != err {
 		t.Error("Failed to parse request: ", client)
+	}
+}
+
+func TestSendRequestsBasic(t *testing.T) {
+	body := []byte{}
+	code := 200
+	url := "URL"
+
+	client := MockClient{
+		Body: body,
+		Code: code,
+	}
+
+	var preparedRequests []*http.Request
+
+	request1, _ := http.NewRequest("UNUSED", url, nil)
+	preparedRequests = append(preparedRequests, request1)
+
+	request2, _ := http.NewRequest("UNUSED", url, nil)
+	preparedRequests = append(preparedRequests, request2)
+
+	results, err := requests.SendRequests(client, preparedRequests)
+
+	for _, result := range results {
+		if result.Url != url || result.Code != code || err != nil {
+			t.Error("Failed to parse request: ", client)
+		}
+	}
+}
+
+func TestSendRequestsError(t *testing.T) {
+	body := []byte{}
+	code := 0
+	url := "URL"
+	err := errors.New("")
+
+	client := MockClient{
+		Body: body,
+		Code: code,
+		Err:  err,
+	}
+
+	var preparedRequests []*http.Request
+
+	request1, _ := http.NewRequest("UNUSED", url, nil)
+	preparedRequests = append(preparedRequests, request1)
+
+	request2, _ := http.NewRequest("UNUSED", url, nil)
+	preparedRequests = append(preparedRequests, request2)
+
+	results, _ := requests.SendRequests(client, preparedRequests)
+
+	for _, result := range results {
+		if result.Url != url || result.Code != code || result.Err != err {
+			t.Error("Failed to parse request: ", client)
+		}
 	}
 }

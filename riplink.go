@@ -26,7 +26,12 @@ func main() {
 		Timeout: time.Second * 5,
 	}
 
-	response, _, err := requests.Request(client, "GET", queryUrl, nil)
+	request, err := http.NewRequest("GET", queryUrl, nil)
+	if err != nil {
+		panic(err)
+	}
+
+	response, _, err := requests.SendRequest(client, request)
 	if err != nil {
 		panic(err)
 	}
@@ -74,18 +79,22 @@ func main() {
 		urls = append(urls, url)
 	}
 
-	ch := make(chan *requests.Result)
-
-	requestCount := 0
-
+	var preparedRequests []*http.Request
 	for _, url := range urls {
-		requestCount += 1
-		go requests.RequestToChan(client, "GET", url, nil, ch)
+		request, err := http.NewRequest("GET", url, nil)
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+		preparedRequests = append(preparedRequests, request)
 	}
 
-	for i := 0; i < requestCount; i++ {
-		result := <-ch
+	results, err := requests.SendRequests(client, preparedRequests)
+	if err != nil {
+		panic(err)
+	}
 
+	for _, result := range results {
 		if result.Err != nil {
 			fmt.Println(result.Err)
 			continue

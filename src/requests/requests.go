@@ -1,9 +1,9 @@
 package requests
 
 import (
-	"io"
 	"io/ioutil"
 	"net/http"
+	"sync"
 )
 
 type Client interface {
@@ -16,12 +16,7 @@ type Result struct {
 	Err  error
 }
 
-func Request(client Client, method string, url string, body io.Reader) (responseBody []byte, responseCode int, err error) {
-	request, err := http.NewRequest(method, url, body)
-	if err != nil {
-		return nil, 0, err
-	}
-
+func SendRequest(client Client, request *http.Request) (responseBody []byte, responseCode int, err error) {
 	response, err := client.Do(request)
 	if err != nil {
 		return nil, 0, err
@@ -36,16 +31,28 @@ func Request(client Client, method string, url string, body io.Reader) (response
 	return bytes, response.StatusCode, nil
 }
 
-func RequestToChan(client Client, method string, url string, body io.Reader, ch chan *Result) (err error) {
-	_, code, err := Request(client, method, url, body)
+func SendRequests(client Client, requests []*http.Request) (results []*Result, err error) {
+	wg := sync.WaitGroup{}
 
-	result := &Result{
-		Url:  url,
-		Code: code,
-		Err:  err,
+	wg.Add(len(requests))
+
+	for _, request := range requests {
+		go func(innerRequest *http.Request) {
+			defer wg.Done()
+
+			_, code, err := SendRequest(client, innerRequest)
+
+			result := &Result{
+				Url:  innerRequest.URL.String(),
+				Code: code,
+				Err:  err,
+			}
+
+			results = append(results, result)
+		}(request)
 	}
 
-	ch <- result
+	wg.Wait()
 
-	return nil
+	return results, nil
 }
