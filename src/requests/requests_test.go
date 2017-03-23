@@ -81,10 +81,12 @@ func TestSendRequestsBasic(t *testing.T) {
 	request2, _ := http.NewRequest("UNUSED", url, nil)
 	preparedRequests = append(preparedRequests, request2)
 
-	results, err := requests.SendRequests(client, preparedRequests)
+	results := make(chan *requests.Result)
 
-	for _, result := range results {
-		if result.Url != url || result.Code != code || err != nil {
+	go requests.SendRequestsToChan(client, preparedRequests, results)
+
+	for result := range results {
+		if result.Url != url || result.Code != code || result.Err != nil {
 			t.Error("Failed to parse request: ", client)
 		}
 	}
@@ -110,9 +112,11 @@ func TestSendRequestsError(t *testing.T) {
 	request2, _ := http.NewRequest("UNUSED", url, nil)
 	preparedRequests = append(preparedRequests, request2)
 
-	results, _ := requests.SendRequests(client, preparedRequests)
+	results := make(chan *requests.Result)
 
-	for _, result := range results {
+	go requests.SendRequestsToChan(client, preparedRequests, results)
+
+	for result := range results {
 		if result.Url != url || result.Code != code || result.Err != err {
 			t.Error("Failed to parse request: ", client)
 		}

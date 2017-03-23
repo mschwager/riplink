@@ -89,12 +89,11 @@ func main() {
 		preparedRequests = append(preparedRequests, request)
 	}
 
-	results, err := requests.SendRequests(client, preparedRequests)
-	if err != nil {
-		panic(err)
-	}
+	results := make(chan *requests.Result)
 
-	for _, result := range results {
+	go requests.SendRequestsToChan(client, preparedRequests, results)
+
+	for result := range results {
 		if result.Err != nil {
 			fmt.Println(result.Err)
 			continue

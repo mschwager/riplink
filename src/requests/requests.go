@@ -31,7 +31,9 @@ func SendRequest(client Client, request *http.Request) (responseBody []byte, res
 	return bytes, response.StatusCode, nil
 }
 
-func SendRequests(client Client, requests []*http.Request) (results []*Result, err error) {
+func SendRequestsToChan(client Client, requests []*http.Request, results chan *Result) {
+	defer close(results)
+
 	wg := sync.WaitGroup{}
 
 	wg.Add(len(requests))
@@ -48,11 +50,9 @@ func SendRequests(client Client, requests []*http.Request) (results []*Result, e
 				Err:  err,
 			}
 
-			results = append(results, result)
+			results <- result
 		}(request)
 	}
 
 	wg.Wait()
-
-	return results, nil
 }
