@@ -2,6 +2,7 @@
 
 [![Build Status](https://travis-ci.org/mschwager/riplink.svg?branch=master)](https://travis-ci.org/mschwager/riplink)
 [![Coverage Status](https://coveralls.io/repos/github/mschwager/riplink/badge.svg?branch=master)](https://coveralls.io/github/mschwager/riplink?branch=master)
+
 ![H.R.E.F.](logo.png)
 
 `riplink` finds dead links on the web. It's useful for double-checking web pages for incorrect, or dead web links.
