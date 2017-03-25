@@ -63,19 +63,31 @@ func main() {
 	var urls []string
 	for _, href := range hrefs {
 		url := href.Val
-		hasHost, err := rpurl.HasHost(url)
+
+		isRelative, err := rpurl.IsRelative(url)
 		if err != nil {
 			fmt.Println(err)
 			continue
 		}
 
-		if !hasHost {
+		isHttpScheme, err := rpurl.IsHttpScheme(url)
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+
+		if !isHttpScheme {
+			continue
+		}
+
+		if isRelative {
 			url, err = rpurl.AddBaseHost(queryUrl, url)
 			if err != nil {
 				fmt.Println(err)
 				continue
 			}
 		}
+
 		urls = append(urls, url)
 	}
 

@@ -4,13 +4,23 @@ import (
 	"net/url"
 )
 
-func HasHost(urlIn string) (hasHost bool, err error) {
+func IsRelative(urlIn string) (isRelative bool, err error) {
 	u, err := url.Parse(urlIn)
 	if err != nil {
 		return false, err
 	}
 
-	return u.Host != "", nil
+	return u.Host == "", nil
+}
+
+func IsHttpScheme(urlIn string) (isHttpScheme bool, err error) {
+	u, err := url.Parse(urlIn)
+	if err != nil {
+		return false, err
+	}
+
+	// Assume lack of a URL scheme implies some form of HTTP
+	return u.Scheme == "" || u.Scheme == "http" || u.Scheme == "https", nil
 }
 
 func AddBaseHost(baseHost string, urlPath string) (urlOut string, err error) {

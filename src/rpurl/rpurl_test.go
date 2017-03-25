@@ -6,40 +6,100 @@ import (
 	"github.com/mschwager/riplink/src/rpurl"
 )
 
-func TestHasHostEmpty(t *testing.T) {
+func TestIsRelativeEmpty(t *testing.T) {
 	urlIn := ""
 
-	result, err := rpurl.HasHost(urlIn)
-
-	if result != false || err != nil {
-		t.Error("Failed to parse URL:", urlIn)
-	}
-}
-
-func TestHasHostValid(t *testing.T) {
-	urlIn := "https://example.com"
-
-	result, err := rpurl.HasHost(urlIn)
+	result, err := rpurl.IsRelative(urlIn)
 
 	if result != true || err != nil {
 		t.Error("Failed to parse URL:", urlIn)
 	}
 }
 
-func TestHasHostOnlyPath(t *testing.T) {
-	urlIn := "/test"
+func TestIsRelativeValid(t *testing.T) {
+	urlIn := "https://example.com"
 
-	result, err := rpurl.HasHost(urlIn)
+	result, err := rpurl.IsRelative(urlIn)
 
 	if result != false || err != nil {
 		t.Error("Failed to parse URL:", urlIn)
 	}
 }
 
-func TestHasHostOnlyFragment(t *testing.T) {
+func TestIsRelativeOnlyPath(t *testing.T) {
+	urlIn := "/test"
+
+	result, err := rpurl.IsRelative(urlIn)
+
+	if result != true || err != nil {
+		t.Error("Failed to parse URL:", urlIn)
+	}
+}
+
+func TestIsRelativeOnlyFragment(t *testing.T) {
 	urlIn := "#fragment"
 
-	result, err := rpurl.HasHost(urlIn)
+	result, err := rpurl.IsRelative(urlIn)
+
+	if result != true || err != nil {
+		t.Error("Failed to parse URL:", urlIn)
+	}
+}
+
+func TestIsHttpSchemeEmpty(t *testing.T) {
+	urlIn := ""
+
+	result, err := rpurl.IsHttpScheme(urlIn)
+
+	if result != true || err != nil {
+		t.Error("Failed to parse URL:", urlIn)
+	}
+}
+
+func TestIsHttpSchemeValid(t *testing.T) {
+	urlIn := "www.example.com"
+
+	result, err := rpurl.IsHttpScheme(urlIn)
+
+	if result != true || err != nil {
+		t.Error("Failed to parse URL:", urlIn)
+	}
+}
+
+func TestIsHttpSchemeValidHttp(t *testing.T) {
+	urlIn := "http://example.com"
+
+	result, err := rpurl.IsHttpScheme(urlIn)
+
+	if result != true || err != nil {
+		t.Error("Failed to parse URL:", urlIn)
+	}
+}
+
+func TestIsHttpSchemeValidHttps(t *testing.T) {
+	urlIn := "https://example.com"
+
+	result, err := rpurl.IsHttpScheme(urlIn)
+
+	if result != true || err != nil {
+		t.Error("Failed to parse URL:", urlIn)
+	}
+}
+
+func TestIsHttpSchemeInvalidMailto(t *testing.T) {
+	urlIn := "mailto:test@example.com"
+
+	result, err := rpurl.IsHttpScheme(urlIn)
+
+	if result != false || err != nil {
+		t.Error("Failed to parse URL:", urlIn)
+	}
+}
+
+func TestIsHttpSchemeInvalidTel(t *testing.T) {
+	urlIn := "tel:867-5309"
+
+	result, err := rpurl.IsHttpScheme(urlIn)
 
 	if result != false || err != nil {
 		t.Error("Failed to parse URL:", urlIn)
