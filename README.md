@@ -7,6 +7,8 @@
 
 `riplink` finds dead links on the web. It's useful for double-checking web pages for incorrect, or dead web links.
 
+Inspired by Wikimedia and the Internet Archive [fixing broken links on Wikipedia](https://blog.wikimedia.org/2016/10/26/internet-archive-broken-links/), and my curiosity of concurrent programming in Go.
+
 # Installing
 
 ```
