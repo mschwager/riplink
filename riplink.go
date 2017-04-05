@@ -17,13 +17,16 @@ func main() {
 	var queryUrl string
 	flag.StringVar(&queryUrl, "url", "https://google.com", "URL to query")
 
+	var timeout int
+	flag.IntVar(&timeout, "timeout", 5, "Timeout in seconds")
+
 	var verbose bool
 	flag.BoolVar(&verbose, "verbose", false, "Verbose output")
 
 	flag.Parse()
 
 	client := &http.Client{
-		Timeout: time.Second * 5,
+		Timeout: time.Second * time.Duration(timeout),
 	}
 
 	request, err := http.NewRequest("GET", queryUrl, nil)
