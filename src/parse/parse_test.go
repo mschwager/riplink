@@ -122,3 +122,45 @@ func TestHrefNoAnchorHref(t *testing.T) {
 		t.Error("Failed to parse HTML anchors: ", err3)
 	}
 }
+
+func TestValidHrefsWithValidHref(t *testing.T) {
+	html := []byte(`
+	<html>
+	<head>
+	</head>
+	<body>
+		<a href="example.com">Test1</a>
+	</body>
+	</html>
+	`)
+
+	node, err1 := parse.BytesToHtmlNode(html)
+	anchors, err2 := parse.Anchors(node)
+	hrefs, errs := parse.ValidHrefs(anchors)
+
+	expected_href := "example.com"
+
+	if err1 != nil || err2 != nil || len(errs) != 0 || hrefs[0].Val != expected_href {
+		t.Error("Failed to parse HTML anchors: ", errs)
+	}
+}
+
+func TestValidHrefsWithInvalidHref(t *testing.T) {
+	html := []byte(`
+	<html>
+	<head>
+	</head>
+	<body>
+		<a>Test1</a>
+	</body>
+	</html>
+	`)
+
+	node, err1 := parse.BytesToHtmlNode(html)
+	anchors, err2 := parse.Anchors(node)
+	hrefs, errs := parse.ValidHrefs(anchors)
+
+	if err1 != nil || err2 != nil || len(errs) != 1 || len(hrefs) != 0 {
+		t.Error("Failed to parse HTML anchors: ", hrefs)
+	}
+}

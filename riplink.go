@@ -9,8 +9,6 @@ import (
 	"github.com/mschwager/riplink/src/parse"
 	"github.com/mschwager/riplink/src/requests"
 	"github.com/mschwager/riplink/src/rpurl"
-
-	"golang.org/x/net/html"
 )
 
 func main() {
@@ -49,15 +47,9 @@ func main() {
 		panic(err)
 	}
 
-	// Filter invalid HREFs
-	var hrefs []html.Attribute
-	for _, anchor := range anchors {
-		href, err := parse.Href(anchor)
-		if err != nil {
-			fmt.Println(err)
-			continue
-		}
-		hrefs = append(hrefs, href)
+	hrefs, errs := parse.ValidHrefs(anchors)
+	for _, err := range errs {
+		fmt.Println("Invalid anchor: ", err)
 	}
 
 	// Attempt to include hostname in relative paths
