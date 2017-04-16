@@ -63,14 +63,14 @@ func Href(anchor *html.Node) (attr html.Attribute, err error) {
 	return html.Attribute{}, errors.New("Could not find anchor href.")
 }
 
-func ValidHrefs(anchors []*html.Node) (hrefs []html.Attribute, errs []error) {
+func ValidHrefs(anchors []*html.Node) (hrefs []string, errs []error) {
 	for _, anchor := range anchors {
 		href, err := Href(anchor)
 		if err != nil {
 			errs = append(errs, err)
 			continue
 		}
-		hrefs = append(hrefs, href)
+		hrefs = append(hrefs, href.Val)
 	}
 
 	return hrefs, errs

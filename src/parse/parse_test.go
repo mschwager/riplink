@@ -140,7 +140,7 @@ func TestValidHrefsWithValidHref(t *testing.T) {
 
 	expected_href := "example.com"
 
-	if err1 != nil || err2 != nil || len(errs) != 0 || hrefs[0].Val != expected_href {
+	if err1 != nil || err2 != nil || len(errs) != 0 || hrefs[0] != expected_href {
 		t.Error("Failed to parse HTML anchors: ", errs)
 	}
 }

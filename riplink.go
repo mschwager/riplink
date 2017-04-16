@@ -49,41 +49,12 @@ func main() {
 
 	hrefs, errs := parse.ValidHrefs(anchors)
 	for _, err := range errs {
-		fmt.Println("Invalid anchor: ", err)
+		fmt.Println("Invalid anchor:", err)
 	}
 
-	// Attempt to include hostname in relative paths
-	// E.g. Querying https://example.com yields /relative/path
-	// gives https://example.com/relative/path
-	var urls []string
-	for _, href := range hrefs {
-		url := href.Val
-
-		isRelative, err := rpurl.IsRelative(url)
-		if err != nil {
-			fmt.Println(err)
-			continue
-		}
-
-		isHttpScheme, err := rpurl.IsHttpScheme(url)
-		if err != nil {
-			fmt.Println(err)
-			continue
-		}
-
-		if !isHttpScheme {
-			continue
-		}
-
-		if isRelative {
-			url, err = rpurl.AddBaseHost(queryUrl, url)
-			if err != nil {
-				fmt.Println(err)
-				continue
-			}
-		}
-
-		urls = append(urls, url)
+	urls, errs := rpurl.AbsoluteHttpUrls(queryUrl, hrefs)
+	for _, err := range errs {
+		fmt.Println("Could not generate usable URL:", err)
 	}
 
 	var preparedRequests []*http.Request

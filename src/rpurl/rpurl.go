@@ -1,6 +1,7 @@
 package rpurl
 
 import (
+	"errors"
 	"net/url"
 )
 
@@ -44,4 +45,42 @@ func AddBaseHost(baseHost string, urlPath string) (urlOut string, err error) {
 	}
 
 	return result, nil
+}
+
+func AbsoluteHttpUrl(baseUrl string, href string) (url string, err error) {
+	isRelative, err := IsRelative(href)
+	if err != nil {
+		return "", err
+	}
+
+	isHttpScheme, err := IsHttpScheme(href)
+	if err != nil {
+		return "", err
+	}
+
+	if !isHttpScheme {
+		return "", errors.New("Invalid URL " + href + ".")
+	}
+
+	if isRelative {
+		href, err = AddBaseHost(baseUrl, href)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	return href, nil
+}
+
+func AbsoluteHttpUrls(baseUrl string, hrefs []string) (urls []string, errs []error) {
+	for _, href := range hrefs {
+		url, err := AbsoluteHttpUrl(baseUrl, href)
+		if err != nil {
+			errs = append(errs, err)
+		} else {
+			urls = append(urls, url)
+		}
+	}
+
+	return urls, errs
 }

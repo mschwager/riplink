@@ -141,3 +141,54 @@ func TestAddBaseHostJustFragment(t *testing.T) {
 		t.Error("Failed to parse URL:", result)
 	}
 }
+
+func TestAbsoluteHttpUrlBasic(t *testing.T) {
+	base := "https://example.com"
+	urlIn := "https://example.com"
+
+	result, err := rpurl.AbsoluteHttpUrl(base, urlIn)
+	expected := "https://example.com"
+
+	if result != expected || err != nil {
+		t.Error("Failed to parse URL:", err)
+	}
+}
+
+func TestAbsoluteHttpUrlInvalidScheme(t *testing.T) {
+	base := "https://example.com"
+	urlIn := "mailto:test@example.com"
+
+	result, err := rpurl.AbsoluteHttpUrl(base, urlIn)
+	expected := ""
+
+	if result != expected || err == nil {
+		t.Error("Failed to parse URL:", err)
+	}
+}
+
+func TestAbsoluteHttpUrlRelativeUrl(t *testing.T) {
+	base := "https://example.com"
+	urlIn := "/relative"
+
+	result, err := rpurl.AbsoluteHttpUrl(base, urlIn)
+	expected := "https://example.com/relative"
+
+	if result != expected || err != nil {
+		t.Error("Failed to parse URL:", err)
+	}
+}
+
+func TestAbsoluteHttpUrlsBasic(t *testing.T) {
+	base := "https://example.com"
+	urls := []string{
+		"https://example.com",
+		"mailto:test@example.com",
+		"/relative",
+	}
+
+	results, errs := rpurl.AbsoluteHttpUrls(base, urls)
+
+	if len(results) != 2 || len(errs) != 1 {
+		t.Error("Failed to parse URL:", errs)
+	}
+}
