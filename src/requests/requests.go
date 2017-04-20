@@ -34,8 +34,12 @@ func SendRequest(client Client, request *http.Request) (responseBody []byte, res
 	return bytes, response.StatusCode, nil
 }
 
-func RecursiveQueryToChanHelper(client Client, queryUrl string, depth uint, results chan *Result, wg *sync.WaitGroup) {
+func RecursiveQueryToChanHelper(client Client, queryUrl string, depth uint, results chan *Result, requested map[string]bool, wg *sync.WaitGroup, mutex *sync.Mutex) {
 	defer wg.Done()
+
+	mutex.Lock()
+	requested[queryUrl] = true
+	mutex.Unlock()
 
 	sendResult := func(url string, code int, err error) {
 		result := &Result{
@@ -83,8 +87,16 @@ func RecursiveQueryToChanHelper(client Client, queryUrl string, depth uint, resu
 	}
 
 	for _, url := range urls {
+		mutex.Lock()
+		requested_before := requested[url]
+		mutex.Unlock()
+
+		if requested_before {
+			continue
+		}
+
 		wg.Add(1)
-		go RecursiveQueryToChanHelper(client, url, depth-1, results, wg)
+		go RecursiveQueryToChanHelper(client, url, depth-1, results, requested, wg, mutex)
 	}
 
 }
@@ -92,10 +104,12 @@ func RecursiveQueryToChanHelper(client Client, queryUrl string, depth uint, resu
 func RecursiveQueryToChan(client Client, queryUrl string, depth uint, results chan *Result) {
 	defer close(results)
 
+	requested := make(map[string]bool)
 	wg := sync.WaitGroup{}
+	mutex := sync.Mutex{}
 
 	wg.Add(1)
-	go RecursiveQueryToChanHelper(client, queryUrl, depth, results, &wg)
+	go RecursiveQueryToChanHelper(client, queryUrl, depth, results, requested, &wg, &mutex)
 
 	wg.Wait()
 }

@@ -171,3 +171,36 @@ func TestRecursiveQueryToChanAttributeErrors(t *testing.T) {
 		}
 	}
 }
+
+func TestRecursiveQueryToChanAvoidDuplicateRequest(t *testing.T) {
+	url := "https://example.com"
+	body := []byte(`
+	<html>
+	<head>
+	</head>
+	<body>
+		<a href="https://example.com"></a>
+	</body>
+	</html>
+	`)
+	code := 200
+	var depth uint = 1
+
+	client := MockClient{
+		Body: body,
+		Code: code,
+	}
+
+	results := make(chan *requests.Result)
+
+	go requests.RecursiveQueryToChan(client, url, depth, results)
+
+	count := 0
+	for _ = range results {
+		count++
+	}
+
+	if count != 1 {
+		t.Error("Failed to parse request: ", client)
+	}
+}
