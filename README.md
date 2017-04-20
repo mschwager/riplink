@@ -7,7 +7,7 @@
 
 `riplink` finds dead links on the web. It's useful for double-checking web pages for incorrect, or dead web links.
 
-Inspired by Wikimedia and the Internet Archive [fixing broken links on Wikipedia](https://blog.wikimedia.org/2016/10/26/internet-archive-broken-links/), and my curiosity of concurrent programming in Go.
+Inspired by Wikimedia and the Internet Archive [fixing broken links on Wikipedia](https://blog.wikimedia.org/2016/10/26/internet-archive-broken-links/).
 
 # Installing
 
@@ -28,6 +28,22 @@ https://www.google.com/imghp?hl=en&tab=wi 200
 https://google.com/intl/en/policies/terms/ 200
 https://google.com/intl/en/ads/ 200
 https://google.com/services/ 200
+...
+```
+
+The `-depth` flag can be used to recurse into discovered links:
+
+```
+# Follow links up to 3 pages deep
+$ riplink -url https://google.com -depth 3
+...
+```
+
+The `-same-origin` flag can be used to avoid querying links from other domains:
+
+```
+# Avoid links that aren't on google.com
+$ riplink -url https://google.com -same-origin
 ...
 ```
 

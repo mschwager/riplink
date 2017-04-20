@@ -20,7 +20,7 @@ func main() {
 	flag.BoolVar(&verbose, "verbose", false, "Verbose output")
 
 	var depth uint
-	flag.UintVar(&depth, "depth", 1, "Depth of links to recurse into")
+	flag.UintVar(&depth, "depth", 1, "Follow discovered links this deep")
 
 	var sameDomain bool
 	flag.BoolVar(&sameDomain, "same-domain", false, "Only query links of the same domain as the initial URL")
