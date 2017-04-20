@@ -3,6 +3,7 @@ package requests_test
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"testing"
@@ -63,27 +64,20 @@ func TestSendRequestError(t *testing.T) {
 	}
 }
 
-func TestSendRequestsBasic(t *testing.T) {
+func TestRecursiveQueryToChanBasic(t *testing.T) {
+	url := "example.com"
 	body := []byte{}
 	code := 200
-	url := "URL"
+	var depth uint = 0
 
 	client := MockClient{
 		Body: body,
 		Code: code,
 	}
 
-	var preparedRequests []*http.Request
-
-	request1, _ := http.NewRequest("UNUSED", url, nil)
-	preparedRequests = append(preparedRequests, request1)
-
-	request2, _ := http.NewRequest("UNUSED", url, nil)
-	preparedRequests = append(preparedRequests, request2)
-
 	results := make(chan *requests.Result)
 
-	go requests.SendRequestsToChan(client, preparedRequests, results)
+	go requests.RecursiveQueryToChan(client, url, depth, results)
 
 	for result := range results {
 		if result.Url != url || result.Code != code || result.Err != nil {
@@ -92,10 +86,11 @@ func TestSendRequestsBasic(t *testing.T) {
 	}
 }
 
-func TestSendRequestsError(t *testing.T) {
+func TestRecursiveQueryToChanError(t *testing.T) {
+	url := "example.com"
 	body := []byte{}
 	code := 0
-	url := "URL"
+	var depth uint = 0
 	err := errors.New("")
 
 	client := MockClient{
@@ -104,20 +99,74 @@ func TestSendRequestsError(t *testing.T) {
 		Err:  err,
 	}
 
-	var preparedRequests []*http.Request
-
-	request1, _ := http.NewRequest("UNUSED", url, nil)
-	preparedRequests = append(preparedRequests, request1)
-
-	request2, _ := http.NewRequest("UNUSED", url, nil)
-	preparedRequests = append(preparedRequests, request2)
-
 	results := make(chan *requests.Result)
 
-	go requests.SendRequestsToChan(client, preparedRequests, results)
+	go requests.RecursiveQueryToChan(client, url, depth, results)
 
 	for result := range results {
 		if result.Url != url || result.Code != code || result.Err != err {
+			t.Error("Failed to parse request: ", client)
+		}
+	}
+}
+
+func TestRecursiveQueryToChanRecurse(t *testing.T) {
+	url := "example1.com"
+	nestedUrl := "example2.com"
+	body := []byte(fmt.Sprintf(`
+	<html>
+	<head>
+	</head>
+	<body>
+		<a href="%s"></a>
+	</body>
+	</html>
+	`, nestedUrl))
+	code := 200
+	var depth uint = 1
+
+	client := MockClient{
+		Body: body,
+		Code: code,
+	}
+
+	results := make(chan *requests.Result)
+
+	go requests.RecursiveQueryToChan(client, url, depth, results)
+
+	for result := range results {
+		if (result.Url != url && result.Url != nestedUrl) || result.Code != code || result.Err != nil {
+			t.Error("Failed to parse request: ", client)
+		}
+	}
+}
+
+func TestRecursiveQueryToChanAttributeErrors(t *testing.T) {
+	url := "example1.com"
+	body := []byte(`
+	<html>
+	<head>
+	</head>
+	<body>
+		<a href="mailto:test@example.com"></a>
+		<a></a>
+	</body>
+	</html>
+	`)
+	code := 200
+	var depth uint = 1
+
+	client := MockClient{
+		Body: body,
+		Code: code,
+	}
+
+	results := make(chan *requests.Result)
+
+	go requests.RecursiveQueryToChan(client, url, depth, results)
+
+	for result := range results {
+		if result.Url != url && result.Err != nil {
 			t.Error("Failed to parse request: ", client)
 		}
 	}

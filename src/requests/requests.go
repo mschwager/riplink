@@ -4,6 +4,9 @@ import (
 	"io/ioutil"
 	"net/http"
 	"sync"
+
+	"github.com/mschwager/riplink/src/parse"
+	"github.com/mschwager/riplink/src/rpurl"
 )
 
 type Client interface {
@@ -31,28 +34,72 @@ func SendRequest(client Client, request *http.Request) (responseBody []byte, res
 	return bytes, response.StatusCode, nil
 }
 
-func SendRequestsToChan(client Client, requests []*http.Request, results chan *Result) {
+func RecursiveQueryToChanHelper(client Client, queryUrl string, depth uint, results chan *Result, wg *sync.WaitGroup) {
+	defer wg.Done()
+
+	sendResult := func(url string, code int, err error) {
+		result := &Result{
+			Url:  url,
+			Code: code,
+			Err:  err,
+		}
+		results <- result
+	}
+
+	request, err := http.NewRequest("GET", queryUrl, nil)
+	if err != nil {
+		sendResult(queryUrl, 0, err)
+		return
+	}
+
+	response, code, err := SendRequest(client, request)
+	if err != nil {
+		sendResult(queryUrl, code, err)
+		return
+	}
+
+	sendResult(queryUrl, code, nil)
+
+	if depth <= 0 {
+		return
+	}
+
+	node, err := parse.BytesToHtmlNode(response)
+	if err != nil {
+		sendResult(queryUrl, code, err)
+		return
+	}
+
+	anchors, err := parse.Anchors(node)
+	if err != nil {
+		sendResult(queryUrl, code, err)
+		return
+	}
+
+	hrefs, errs := parse.ValidHrefs(anchors)
+	for _, err := range errs {
+		sendResult(queryUrl, code, err)
+	}
+
+	urls, errs := rpurl.AbsoluteHttpUrls(queryUrl, hrefs)
+	for _, err := range errs {
+		sendResult(queryUrl, code, err)
+	}
+
+	for _, url := range urls {
+		wg.Add(1)
+		go RecursiveQueryToChanHelper(client, url, depth-1, results, wg)
+	}
+
+}
+
+func RecursiveQueryToChan(client Client, queryUrl string, depth uint, results chan *Result) {
 	defer close(results)
 
 	wg := sync.WaitGroup{}
 
-	wg.Add(len(requests))
-
-	for _, request := range requests {
-		go func(innerRequest *http.Request) {
-			defer wg.Done()
-
-			_, code, err := SendRequest(client, innerRequest)
-
-			result := &Result{
-				Url:  innerRequest.URL.String(),
-				Code: code,
-				Err:  err,
-			}
-
-			results <- result
-		}(request)
-	}
+	wg.Add(1)
+	go RecursiveQueryToChanHelper(client, queryUrl, depth, results, &wg)
 
 	wg.Wait()
 }
