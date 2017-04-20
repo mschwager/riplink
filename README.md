@@ -39,11 +39,11 @@ $ riplink -url https://google.com -depth 3
 ...
 ```
 
-The `-same-origin` flag can be used to avoid querying links from other domains:
+The `-same-domain` flag can be used to avoid querying links from other domains:
 
 ```
 # Avoid links that aren't on google.com
-$ riplink -url https://google.com -same-origin
+$ riplink -url https://google.com -same-domain
 ...
 ```
 
