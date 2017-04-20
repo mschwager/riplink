@@ -27,11 +27,11 @@ func TestElementsBasic(t *testing.T) {
 	`)
 
 	node, err1 := parse.BytesToHtmlNode(html)
-	elements, err2 := parse.Elements(node)
+	elements := parse.Elements(node)
 
 	expected_length := 3
 
-	if err1 != nil || err2 != nil || len(elements) != expected_length {
+	if err1 != nil || len(elements) != expected_length {
 		t.Error("Failed to parse HTML elements: ", elements)
 	}
 }
@@ -47,12 +47,12 @@ func TestAnchorsEmpty(t *testing.T) {
 	`)
 
 	node, err1 := parse.BytesToHtmlNode(html)
-	anchors, err2 := parse.Anchors(node)
+	anchors := parse.Anchors(node)
 
 	expected_length := 0
 
-	if err1 != nil || err2 != nil || len(anchors) != expected_length {
-		t.Error("Failed to parse HTML anchors: ", err2)
+	if err1 != nil || len(anchors) != expected_length {
+		t.Error("Failed to parse HTML anchors")
 	}
 }
 
@@ -70,12 +70,12 @@ func TestAnchorsBasic(t *testing.T) {
 	`)
 
 	node, err1 := parse.BytesToHtmlNode(html)
-	anchors, err2 := parse.Anchors(node)
+	anchors := parse.Anchors(node)
 
 	expected_length := 2
 
-	if err1 != nil || err2 != nil || len(anchors) != expected_length {
-		t.Error("Failed to parse HTML anchors: ", err2)
+	if err1 != nil || len(anchors) != expected_length {
+		t.Error("Failed to parse HTML anchors")
 	}
 }
 
@@ -91,13 +91,13 @@ func TestHrefBasic(t *testing.T) {
 	`)
 
 	node, err1 := parse.BytesToHtmlNode(html)
-	anchors, err2 := parse.Anchors(node)
-	href, err3 := parse.Href(anchors[0])
+	anchors := parse.Anchors(node)
+	href, err2 := parse.Href(anchors[0])
 
 	expected_href := "example.com"
 
-	if err1 != nil || err2 != nil || err3 != nil || href.Val != expected_href {
-		t.Error("Failed to parse HTML anchors: ", err3)
+	if err1 != nil || err2 != nil || href.Val != expected_href {
+		t.Error("Failed to parse HTML hrefs: ", err2)
 	}
 }
 
@@ -113,13 +113,13 @@ func TestHrefNoAnchorHref(t *testing.T) {
 	`)
 
 	node, err1 := parse.BytesToHtmlNode(html)
-	anchors, err2 := parse.Anchors(node)
-	href, err3 := parse.Href(anchors[0])
+	anchors := parse.Anchors(node)
+	href, err2 := parse.Href(anchors[0])
 
 	expected_href := ""
 
-	if err1 != nil || err2 != nil || err3 == nil || href.Val != expected_href {
-		t.Error("Failed to parse HTML anchors: ", err3)
+	if err1 != nil || err2 == nil || href.Val != expected_href {
+		t.Error("Failed to parse HTML hrefs: ", err2)
 	}
 }
 
@@ -135,13 +135,13 @@ func TestValidHrefsWithValidHref(t *testing.T) {
 	`)
 
 	node, err1 := parse.BytesToHtmlNode(html)
-	anchors, err2 := parse.Anchors(node)
+	anchors := parse.Anchors(node)
 	hrefs, errs := parse.ValidHrefs(anchors)
 
 	expected_href := "example.com"
 
-	if err1 != nil || err2 != nil || len(errs) != 0 || hrefs[0] != expected_href {
-		t.Error("Failed to parse HTML anchors: ", errs)
+	if err1 != nil || len(errs) != 0 || hrefs[0] != expected_href {
+		t.Error("Failed to parse HTML hrefs: ", errs)
 	}
 }
 
@@ -157,10 +157,10 @@ func TestValidHrefsWithInvalidHref(t *testing.T) {
 	`)
 
 	node, err1 := parse.BytesToHtmlNode(html)
-	anchors, err2 := parse.Anchors(node)
+	anchors := parse.Anchors(node)
 	hrefs, errs := parse.ValidHrefs(anchors)
 
-	if err1 != nil || err2 != nil || len(errs) != 1 || len(hrefs) != 0 {
-		t.Error("Failed to parse HTML anchors: ", hrefs)
+	if err1 != nil || len(errs) != 1 || len(hrefs) != 0 {
+		t.Error("Failed to parse HTML hrefs: ", hrefs)
 	}
 }

@@ -25,7 +25,7 @@ func NodeIterHelper(node *html.Node, elements chan *html.Node, filter func(*html
 	}
 }
 
-func NodeIter(node *html.Node, filter func(*html.Node) bool) (result []*html.Node, err error) {
+func NodeIter(node *html.Node, filter func(*html.Node) bool) (result []*html.Node) {
 	elements := make(chan *html.Node)
 	go func() {
 		NodeIterHelper(node, elements, filter)
@@ -38,16 +38,16 @@ func NodeIter(node *html.Node, filter func(*html.Node) bool) (result []*html.Nod
 		result = append(result, element)
 	}
 
-	return result, nil
+	return result
 }
 
-func Elements(node *html.Node) (result []*html.Node, err error) {
+func Elements(node *html.Node) (result []*html.Node) {
 	return NodeIter(node, func(n *html.Node) bool {
 		return n.Type == html.ElementNode
 	})
 }
 
-func Anchors(node *html.Node) (result []*html.Node, err error) {
+func Anchors(node *html.Node) (result []*html.Node) {
 	return NodeIter(node, func(n *html.Node) bool {
 		return n.Type == html.ElementNode && n.Data == "a"
 	})

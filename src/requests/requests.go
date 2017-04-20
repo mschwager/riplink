@@ -70,11 +70,7 @@ func RecursiveQueryToChanHelper(client Client, queryUrl string, depth uint, resu
 		return
 	}
 
-	anchors, err := parse.Anchors(node)
-	if err != nil {
-		sendResult(queryUrl, code, err)
-		return
-	}
+	anchors := parse.Anchors(node)
 
 	hrefs, errs := parse.ValidHrefs(anchors)
 	for _, err := range errs {
