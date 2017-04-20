@@ -24,6 +24,20 @@ func IsHttpScheme(urlIn string) (isHttpScheme bool, err error) {
 	return u.Scheme == "" || u.Scheme == "http" || u.Scheme == "https", nil
 }
 
+func IsSameDomain(url1 string, url2 string) (isSameDomain bool) {
+	u1, err := url.Parse(url1)
+	if err != nil {
+		return false
+	}
+
+	u2, err := url.Parse(url2)
+	if err != nil {
+		return false
+	}
+
+	return u1.Host == u2.Host
+}
+
 func AddBaseHost(baseHost string, urlPath string) (urlOut string, err error) {
 	b, err := url.Parse(baseHost)
 	if err != nil {

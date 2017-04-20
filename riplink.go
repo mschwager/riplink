@@ -22,6 +22,9 @@ func main() {
 	var depth uint
 	flag.UintVar(&depth, "depth", 1, "Depth of links to recurse into")
 
+	var sameDomain bool
+	flag.BoolVar(&sameDomain, "same-domain", false, "Only query links of the same domain as the initial URL")
+
 	flag.Parse()
 
 	client := &http.Client{
@@ -30,7 +33,7 @@ func main() {
 
 	results := make(chan *requests.Result)
 
-	go requests.RecursiveQueryToChan(client, queryUrl, depth, results)
+	go requests.RecursiveQueryToChan(client, queryUrl, depth, sameDomain, results)
 
 	for result := range results {
 		if result.Err != nil {

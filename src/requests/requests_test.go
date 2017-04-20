@@ -77,7 +77,7 @@ func TestRecursiveQueryToChanBasic(t *testing.T) {
 
 	results := make(chan *requests.Result)
 
-	go requests.RecursiveQueryToChan(client, url, depth, results)
+	go requests.RecursiveQueryToChan(client, url, depth, false, results)
 
 	for result := range results {
 		if result.Url != url || result.Code != code || result.Err != nil {
@@ -101,7 +101,7 @@ func TestRecursiveQueryToChanError(t *testing.T) {
 
 	results := make(chan *requests.Result)
 
-	go requests.RecursiveQueryToChan(client, url, depth, results)
+	go requests.RecursiveQueryToChan(client, url, depth, false, results)
 
 	for result := range results {
 		if result.Url != url || result.Code != code || result.Err != err {
@@ -132,7 +132,7 @@ func TestRecursiveQueryToChanRecurse(t *testing.T) {
 
 	results := make(chan *requests.Result)
 
-	go requests.RecursiveQueryToChan(client, url, depth, results)
+	go requests.RecursiveQueryToChan(client, url, depth, false, results)
 
 	for result := range results {
 		if (result.Url != url && result.Url != nestedUrl) || result.Code != code || result.Err != nil {
@@ -163,7 +163,7 @@ func TestRecursiveQueryToChanAttributeErrors(t *testing.T) {
 
 	results := make(chan *requests.Result)
 
-	go requests.RecursiveQueryToChan(client, url, depth, results)
+	go requests.RecursiveQueryToChan(client, url, depth, false, results)
 
 	for result := range results {
 		if result.Url != url && result.Err != nil {
@@ -193,7 +193,40 @@ func TestRecursiveQueryToChanAvoidDuplicateRequest(t *testing.T) {
 
 	results := make(chan *requests.Result)
 
-	go requests.RecursiveQueryToChan(client, url, depth, results)
+	go requests.RecursiveQueryToChan(client, url, depth, false, results)
+
+	count := 0
+	for _ = range results {
+		count++
+	}
+
+	if count != 1 {
+		t.Error("Failed to parse request: ", client)
+	}
+}
+
+func TestRecursiveQueryToChanAvoidDifferentDomain(t *testing.T) {
+	url := "https://example.com"
+	body := []byte(`
+	<html>
+	<head>
+	</head>
+	<body>
+		<a href="https://different.com"></a>
+	</body>
+	</html>
+	`)
+	code := 200
+	var depth uint = 1
+
+	client := MockClient{
+		Body: body,
+		Code: code,
+	}
+
+	results := make(chan *requests.Result)
+
+	go requests.RecursiveQueryToChan(client, url, depth, true, results)
 
 	count := 0
 	for _ = range results {

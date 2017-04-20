@@ -106,6 +106,39 @@ func TestIsHttpSchemeInvalidTel(t *testing.T) {
 	}
 }
 
+func TestIsSameDomainEmpty(t *testing.T) {
+	url1 := ""
+	url2 := ""
+
+	result := rpurl.IsSameDomain(url1, url2)
+
+	if result != true {
+		t.Error("Failed to parse URL:", url1, url2)
+	}
+}
+
+func TestIsSameDomainBasic(t *testing.T) {
+	url1 := "https://example.com"
+	url2 := "https://example.com/this/is/a/path"
+
+	result := rpurl.IsSameDomain(url1, url2)
+
+	if result != true {
+		t.Error("Failed to parse URL:", url1, url2)
+	}
+}
+
+func TestIsSameDomainDifferent(t *testing.T) {
+	url1 := "https://example.com"
+	url2 := "https://different.com"
+
+	result := rpurl.IsSameDomain(url1, url2)
+
+	if result != false {
+		t.Error("Failed to parse URL:", url1, url2)
+	}
+}
+
 func TestAddBaseHostToPath(t *testing.T) {
 	base := "https://example.com"
 	urlIn := "/test"
