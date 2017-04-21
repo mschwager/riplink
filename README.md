@@ -17,12 +17,12 @@ $ go get github.com/mschwager/riplink
 
 # Using
 
-By default `riplink` will only print links to pages that return something other than an `HTTP 200`.
+By default `riplink` will only print links to pages that return something other than an `HTTP 2XX`.
 
 If we specify the `-verbose` flag it will print all links:
 
 ```
-$ riplink -verbose -url https://google.com
+$ riplink -url https://google.com -verbose
 https://www.google.com/intl/en/options/ 200
 https://www.google.com/imghp?hl=en&tab=wi 200
 https://google.com/intl/en/policies/terms/ 200

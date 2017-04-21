@@ -31,14 +31,6 @@ func main() {
 
 	flag.Parse()
 
-	client := &http.Client{
-		Timeout: time.Second * time.Duration(timeout),
-	}
-
-	results := make(chan *requests.Result)
-
-	go requests.RecursiveQueryToChan(client, queryUrl, depth, sameDomain, results)
-
 	printPredicate := func(code int) bool {
 		return code < 200 || code > 299
 	}
@@ -48,6 +40,14 @@ func main() {
 			return code == httpCode
 		}
 	}
+
+	client := &http.Client{
+		Timeout: time.Second * time.Duration(timeout),
+	}
+
+	results := make(chan *requests.Result)
+
+	go requests.RecursiveQueryToChan(client, queryUrl, depth, sameDomain, results)
 
 	for result := range results {
 		if result.Err != nil {
