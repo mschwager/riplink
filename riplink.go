@@ -51,7 +51,9 @@ func main() {
 
 	for result := range results {
 		if result.Err != nil {
-			fmt.Println(result.Err)
+			if verbose {
+				fmt.Println(result.Err)
+			}
 			continue
 		}
 
