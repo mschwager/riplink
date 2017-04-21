@@ -47,6 +47,14 @@ $ riplink -url https://google.com -same-domain
 ...
 ```
 
+If you're looking for specific HTTP return codes you can use the `-http-code` flag:
+
+```
+# Only output links that return HTTP 302
+$ riplink -url https://google.com -http-code 302
+...
+```
+
 # Testing
 
 ```

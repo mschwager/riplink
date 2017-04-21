@@ -25,6 +25,10 @@ func main() {
 	var sameDomain bool
 	flag.BoolVar(&sameDomain, "same-domain", false, "Only query links of the same domain as the initial URL")
 
+	var httpCode int
+	var httpCodeDefault int = 0
+	flag.IntVar(&httpCode, "http-code", httpCodeDefault, "Only print results that received this HTTP return code (default not HTTP 2XX)")
+
 	flag.Parse()
 
 	client := &http.Client{
@@ -35,13 +39,23 @@ func main() {
 
 	go requests.RecursiveQueryToChan(client, queryUrl, depth, sameDomain, results)
 
+	printPredicate := func(code int) bool {
+		return code < 200 || code > 299
+	}
+
+	if httpCode != httpCodeDefault {
+		printPredicate = func(code int) bool {
+			return code == httpCode
+		}
+	}
+
 	for result := range results {
 		if result.Err != nil {
 			fmt.Println(result.Err)
 			continue
 		}
 
-		if verbose || result.Code < 200 || result.Code > 299 {
+		if verbose || printPredicate(result.Code) {
 			fmt.Println(result.Url, result.Code)
 		}
 	}
