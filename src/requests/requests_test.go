@@ -196,7 +196,7 @@ func TestRecursiveQueryToChanAvoidDuplicateRequest(t *testing.T) {
 	go requests.RecursiveQueryToChan(client, url, depth, false, results)
 
 	count := 0
-	for _ = range results {
+	for range results {
 		count++
 	}
 
@@ -229,7 +229,7 @@ func TestRecursiveQueryToChanAvoidDifferentDomain(t *testing.T) {
 	go requests.RecursiveQueryToChan(client, url, depth, true, results)
 
 	count := 0
-	for _ = range results {
+	for range results {
 		count++
 	}
 

@@ -92,10 +92,10 @@ func RecursiveQueryToChanHelper(client Client, queryUrl string, depth uint, same
 		}
 
 		mutex.Lock()
-		requested_before := requested[url]
+		requestedBefore := requested[url]
 		mutex.Unlock()
 
-		if requested_before {
+		if requestedBefore {
 			continue
 		}
 
