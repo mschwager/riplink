@@ -2,6 +2,7 @@
 
 [![Build Status](https://travis-ci.org/mschwager/riplink.svg?branch=master)](https://travis-ci.org/mschwager/riplink)
 [![Coverage Status](https://coveralls.io/repos/github/mschwager/riplink/badge.svg?branch=master)](https://coveralls.io/github/mschwager/riplink?branch=master)
+[![Go Report Card](https://goreportcard.com/badge/github.com/mschwager/riplink)](https://goreportcard.com/report/github.com/mschwager/riplink)
 
 ![H.R.E.F.](logo.png)
 
