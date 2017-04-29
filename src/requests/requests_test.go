@@ -205,6 +205,40 @@ func TestRecursiveQueryToChanAvoidDuplicateRequest(t *testing.T) {
 	}
 }
 
+func TestRecursiveQueryToChanAvoidRelativeDuplicateRequest(t *testing.T) {
+	url := "https://example.com"
+	body := []byte(`
+	<html>
+	<head>
+	</head>
+	<body>
+		<a href="https://example.com/relative/path"></a>
+		<a href="/relative/path"></a>
+	</body>
+	</html>
+	`)
+	code := 200
+	var depth uint = 1
+
+	client := MockClient{
+		Body: body,
+		Code: code,
+	}
+
+	results := make(chan *requests.Result)
+
+	go requests.RecursiveQueryToChan(client, url, depth, false, results)
+
+	count := 0
+	for range results {
+		count++
+	}
+
+	if count != 2 {
+		t.Error("Failed to parse request: ", client)
+	}
+}
+
 func TestRecursiveQueryToChanAvoidDifferentDomain(t *testing.T) {
 	url := "https://example.com"
 	body := []byte(`

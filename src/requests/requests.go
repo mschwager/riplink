@@ -19,6 +19,23 @@ type Result struct {
 	Err  error
 }
 
+type QueriedUrls struct {
+	rwmutex sync.RWMutex
+	urls    map[string]bool
+}
+
+func (qu *QueriedUrls) Add(url string) {
+	qu.rwmutex.Lock()
+	defer qu.rwmutex.Unlock()
+	qu.urls[url] = true
+}
+
+func (qu *QueriedUrls) Exists(url string) bool {
+	qu.rwmutex.RLock()
+	defer qu.rwmutex.RUnlock()
+	return qu.urls[url]
+}
+
 func SendRequest(client Client, request *http.Request) (responseBody []byte, responseCode int, err error) {
 	response, err := client.Do(request)
 	if err != nil {
@@ -34,12 +51,8 @@ func SendRequest(client Client, request *http.Request) (responseBody []byte, res
 	return bytes, response.StatusCode, nil
 }
 
-func RecursiveQueryToChanHelper(client Client, queryUrl string, depth uint, sameDomain bool, results chan *Result, requested map[string]bool, wg *sync.WaitGroup, mutex *sync.Mutex) {
+func RecursiveQueryToChanHelper(client Client, queryUrl string, depth uint, sameDomain bool, results chan *Result, wg *sync.WaitGroup, qu *QueriedUrls) {
 	defer wg.Done()
-
-	mutex.Lock()
-	requested[queryUrl] = true
-	mutex.Unlock()
 
 	sendResult := func(url string, code int, err error) {
 		result := &Result{
@@ -91,16 +104,14 @@ func RecursiveQueryToChanHelper(client Client, queryUrl string, depth uint, same
 			continue
 		}
 
-		mutex.Lock()
-		requestedBefore := requested[url]
-		mutex.Unlock()
-
-		if requestedBefore {
+		if qu.Exists(url) {
 			continue
+		} else {
+			qu.Add(url)
 		}
 
 		wg.Add(1)
-		go RecursiveQueryToChanHelper(client, url, depth-1, sameDomain, results, requested, wg, mutex)
+		go RecursiveQueryToChanHelper(client, url, depth-1, sameDomain, results, wg, qu)
 	}
 
 }
@@ -108,12 +119,14 @@ func RecursiveQueryToChanHelper(client Client, queryUrl string, depth uint, same
 func RecursiveQueryToChan(client Client, queryUrl string, depth uint, sameDomain bool, results chan *Result) {
 	defer close(results)
 
-	requested := make(map[string]bool)
-	wg := sync.WaitGroup{}
-	mutex := sync.Mutex{}
+	wg := &sync.WaitGroup{}
+	qu := &QueriedUrls{
+		urls: make(map[string]bool),
+	}
 
+	qu.Add(queryUrl)
 	wg.Add(1)
-	go RecursiveQueryToChanHelper(client, queryUrl, depth, sameDomain, results, requested, &wg, &mutex)
+	go RecursiveQueryToChanHelper(client, queryUrl, depth, sameDomain, results, wg, qu)
 
 	wg.Wait()
 }
