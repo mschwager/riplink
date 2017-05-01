@@ -19,21 +19,27 @@ type Result struct {
 	Err  error
 }
 
-type QueriedUrls struct {
-	rwmutex sync.RWMutex
-	urls    map[string]bool
+type UniqueWaitGroup struct {
+	*sync.WaitGroup
+	*sync.RWMutex
+	existing map[string]bool
 }
 
-func (qu *QueriedUrls) Add(url string) {
-	qu.rwmutex.Lock()
-	defer qu.rwmutex.Unlock()
-	qu.urls[url] = true
-}
+func (uwg *UniqueWaitGroup) AddString(str string) bool {
+	uwg.RLock()
+	if uwg.existing[str] {
+		uwg.RUnlock()
+		return false
+	}
+	uwg.RUnlock()
 
-func (qu *QueriedUrls) Exists(url string) bool {
-	qu.rwmutex.RLock()
-	defer qu.rwmutex.RUnlock()
-	return qu.urls[url]
+	uwg.Lock()
+	uwg.existing[str] = true
+	uwg.Unlock()
+
+	uwg.Add(1)
+
+	return true
 }
 
 func SendRequest(client Client, request *http.Request) (responseBody []byte, responseCode int, err error) {
@@ -51,8 +57,8 @@ func SendRequest(client Client, request *http.Request) (responseBody []byte, res
 	return bytes, response.StatusCode, nil
 }
 
-func RecursiveQueryToChanHelper(client Client, queryUrl string, depth uint, sameDomain bool, results chan *Result, wg *sync.WaitGroup, qu *QueriedUrls) {
-	defer wg.Done()
+func RecursiveQueryToChanHelper(client Client, queryUrl string, depth uint, sameDomain bool, results chan *Result, uwg *UniqueWaitGroup) {
+	defer uwg.Done()
 
 	sendResult := func(url string, code int, err error) {
 		result := &Result{
@@ -104,14 +110,11 @@ func RecursiveQueryToChanHelper(client Client, queryUrl string, depth uint, same
 			continue
 		}
 
-		if qu.Exists(url) {
+		if added := uwg.AddString(url); !added {
 			continue
-		} else {
-			qu.Add(url)
 		}
 
-		wg.Add(1)
-		go RecursiveQueryToChanHelper(client, url, depth-1, sameDomain, results, wg, qu)
+		go RecursiveQueryToChanHelper(client, url, depth-1, sameDomain, results, uwg)
 	}
 
 }
@@ -119,14 +122,16 @@ func RecursiveQueryToChanHelper(client Client, queryUrl string, depth uint, same
 func RecursiveQueryToChan(client Client, queryUrl string, depth uint, sameDomain bool, results chan *Result) {
 	defer close(results)
 
-	wg := &sync.WaitGroup{}
-	qu := &QueriedUrls{
-		urls: make(map[string]bool),
+	uwg := &UniqueWaitGroup{
+		&sync.WaitGroup{},
+		&sync.RWMutex{},
+		make(map[string]bool),
 	}
 
-	qu.Add(queryUrl)
-	wg.Add(1)
-	go RecursiveQueryToChanHelper(client, queryUrl, depth, sameDomain, results, wg, qu)
+	// Assume the UniqueWaitGroup is empty
+	_ = uwg.AddString(queryUrl)
 
-	wg.Wait()
+	go RecursiveQueryToChanHelper(client, queryUrl, depth, sameDomain, results, uwg)
+
+	uwg.Wait()
 }
