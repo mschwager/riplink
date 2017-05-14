@@ -65,7 +65,7 @@ func TestSendRequestError(t *testing.T) {
 }
 
 func TestRecursiveQueryToChanBasic(t *testing.T) {
-	url := "example.com"
+	url := "https://example.com"
 	body := []byte{}
 	code := 200
 	var depth uint = 0
@@ -87,7 +87,7 @@ func TestRecursiveQueryToChanBasic(t *testing.T) {
 }
 
 func TestRecursiveQueryToChanError(t *testing.T) {
-	url := "example.com"
+	url := "https://example.com"
 	body := []byte{}
 	code := 0
 	var depth uint = 0
@@ -111,8 +111,8 @@ func TestRecursiveQueryToChanError(t *testing.T) {
 }
 
 func TestRecursiveQueryToChanRecurse(t *testing.T) {
-	url := "example1.com"
-	nestedUrl := "example2.com"
+	url := "https://example1.com"
+	nestedUrl := "https://example2.com"
 	body := []byte(fmt.Sprintf(`
 	<html>
 	<head>
@@ -142,7 +142,7 @@ func TestRecursiveQueryToChanRecurse(t *testing.T) {
 }
 
 func TestRecursiveQueryToChanAttributeErrors(t *testing.T) {
-	url := "example1.com"
+	url := "https://example1.com"
 	body := []byte(`
 	<html>
 	<head>

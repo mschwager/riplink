@@ -51,7 +51,7 @@ func TestIsHttpSchemeEmpty(t *testing.T) {
 
 	result, err := rpurl.IsHttpScheme(urlIn)
 
-	if result != true || err != nil {
+	if result != false || err != nil {
 		t.Error("Failed to parse URL:", urlIn)
 	}
 }
@@ -61,7 +61,7 @@ func TestIsHttpSchemeValid(t *testing.T) {
 
 	result, err := rpurl.IsHttpScheme(urlIn)
 
-	if result != true || err != nil {
+	if result != false || err != nil {
 		t.Error("Failed to parse URL:", urlIn)
 	}
 }
@@ -145,6 +145,30 @@ func TestAddBaseHostToPath(t *testing.T) {
 
 	result, err := rpurl.AddBaseHost(base, urlIn)
 	expected := "https://example.com/test"
+
+	if result != expected || err != nil {
+		t.Error("Failed to parse URL:", result)
+	}
+}
+
+func TestAddBaseHostToPathCurDirRelative(t *testing.T) {
+	base := "https://example.com"
+	urlIn := "./test"
+
+	result, err := rpurl.AddBaseHost(base, urlIn)
+	expected := "https://example.com/test"
+
+	if result != expected || err != nil {
+		t.Error("Failed to parse URL:", result)
+	}
+}
+
+func TestAddBaseHostToPathParentDirRelative(t *testing.T) {
+	base := "https://example.com/test1"
+	urlIn := "../test2"
+
+	result, err := rpurl.AddBaseHost(base, urlIn)
+	expected := "https://example.com/test2"
 
 	if result != expected || err != nil {
 		t.Error("Failed to parse URL:", result)

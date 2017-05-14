@@ -11,7 +11,7 @@ func IsRelative(urlIn string) (isRelative bool, err error) {
 		return false, err
 	}
 
-	return u.Host == "", nil
+	return !u.IsAbs(), nil
 }
 
 func IsHttpScheme(urlIn string) (isHttpScheme bool, err error) {
@@ -20,8 +20,7 @@ func IsHttpScheme(urlIn string) (isHttpScheme bool, err error) {
 		return false, err
 	}
 
-	// Assume lack of a URL scheme implies some form of HTTP
-	return u.Scheme == "" || u.Scheme == "http" || u.Scheme == "https", nil
+	return u.Scheme == "http" || u.Scheme == "https", nil
 }
 
 func IsSameDomain(url1 string, url2 string) (isSameDomain bool) {
@@ -49,16 +48,9 @@ func AddBaseHost(baseHost string, urlPath string) (urlOut string, err error) {
 		return "", err
 	}
 
-	u.Scheme = b.Scheme
-	u.Host = b.Host
-	u.User = b.User
+	u = b.ResolveReference(u)
 
-	result, err := url.QueryUnescape(u.String())
-	if err != nil {
-		return "", err
-	}
-
-	return result, nil
+	return u.String(), nil
 }
 
 func AbsoluteHttpUrl(baseUrl string, href string) (url string, err error) {
@@ -72,7 +64,7 @@ func AbsoluteHttpUrl(baseUrl string, href string) (url string, err error) {
 		return "", err
 	}
 
-	if !isHttpScheme {
+	if !isRelative && !isHttpScheme {
 		return "", errors.New("Invalid URL " + href + ".")
 	}
 
