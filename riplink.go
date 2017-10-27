@@ -19,6 +19,9 @@ func main() {
 	var verbose bool
 	flag.BoolVar(&verbose, "verbose", false, "Verbose output")
 
+	var colorize bool
+	flag.BoolVar(&colorize, "colorize", false, "Colorize output")
+
 	var depth uint
 	flag.UintVar(&depth, "depth", 1, "Follow discovered links this deep")
 
@@ -58,6 +61,14 @@ func main() {
 		}
 
 		if verbose || printPredicate(result.Code) {
+			if colorize == true {
+				if result.Code == 200 {
+					fmt.Printf("%s \x1b[32;1m%d\x1b[0m\n", result.Url, result.Code)
+				} else {
+					fmt.Printf("%s \x1b[31;1m%d\x1b[0m\n", result.Url, result.Code)
+				}
+				continue
+			}
 			fmt.Println(result.Url, result.Code)
 		}
 	}
